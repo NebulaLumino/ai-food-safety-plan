@@ -1,184 +1,99 @@
-'use client';
+"use client";
+import { useState } from "react";
 
-import { useState } from 'react';
+const ACCENT = "amber";
 
-export default function FoodSafetyPage() {
-  const [form, setForm] = useState({
-    cuisineType: '',
-    foodHandlingRisks: '',
-    kitchenSetup: '',
-    storageCapacity: '',
-    localHealthCodes: '',
-  });
+export default function HACCPPage() {
+  const [establishmentType, setEstablishmentType] = useState("Restaurant");
+  const [cuisineType, setCuisineType] = useState("American");
+  const [foodCategories, setFoodCategories] = useState("");
+  const [volume, setVolume] = useState("Medium (50-150 covers/day)");
+  const [staffingLevel, setStaffingLevel] = useState("Small (5-15 staff)");
+  const [priorViolations, setPriorViolations] = useState("");
+  const [certificationLevel, setCertificationLevel] = useState("Basic Food Safety");
+  const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setResult('');
-    setError('');
+  const handleGenerate = async () => {
+    setLoading(true); setError(""); setOutput("");
     try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ establishmentType, cuisineType, foodCategories, volume, staffingLevel, priorViolations, certificationLevel }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Generation failed');
-      setResult(data.result);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
-    } finally {
-      setLoading(false);
-    }
+      if (!res.ok) throw new Error(data.error || "Generation failed");
+      setOutput(data.output);
+    } catch (err: any) { setError(err.message); } finally { setLoading(false); }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const renderMarkdown = (text: string) => {
-    return text
-      .replace(/##\s+(.*)/g, '<h2 class="text-orange-400 font-bold text-base mt-5 mb-2 uppercase tracking-wide">$1</h2>')
-      .replace(/###\s+(.*)/g, '<h3 class="text-white font-semibold text-sm mt-3 mb-1">$1</h3>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
-      .replace(/\[ \]/g, '☐')
-      .replace(/\n\n/g, '</p><p class="text-gray-300 my-3">')
-      .replace(/\n/g, '<br/>');
-  };
+  const btnClass = loading
+    ? `px-8 py-3 rounded-lg font-semibold text-white bg-${ACCENT}-700 cursor-not-allowed`
+    : `px-8 py-3 rounded-lg font-semibold text-white bg-${ACCENT}-600 hover:bg-${ACCENT}-500 transition-all`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-gray-900 text-white">
-      <div className="border-b border-orange-500/20 bg-gray-950/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center text-xl">🛡️</div>
+    <main className="max-w-5xl mx-auto px-4 py-12">
+      <div className="text-center mb-10">
+        <h1 className={`text-4xl font-bold mb-3 bg-gradient-to-r from-${ACCENT}-400 to-${ACCENT}-600 bg-clip-text text-transparent`}>AI Food Safety (HACCP) Plan</h1>
+        <p className="text-gray-400 text-sm">Generate comprehensive HACCP food safety plans for food service operations</p>
+      </div>
+      <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 mb-6">
+        <h2 className="text-lg font-semibold mb-4 text-gray-200">Establishment Details</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h1 className="text-lg font-bold text-white">AI Food Safety & HACCP Plan Generator</h1>
-            <p className="text-xs text-gray-400">Critical control points, temperature logs & compliance</p>
+            <label className="block text-sm font-medium mb-1 text-gray-300">Establishment Type *</label>
+            <select value={establishmentType} onChange={e => setEstablishmentType(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-amber-500 text-gray-200">
+              <option>Restaurant</option><option>Cafe</option><option>Catering</option><option>Food Truck</option><option>Hospital</option><option>School Cafeteria</option><option>Hotel/Resort</option><option>Bakery</option><option>Food Manufacturing</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-300">Cuisine Type</label>
+            <select value={cuisineType} onChange={e => setCuisineType(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-amber-500 text-gray-200">
+              <option>American</option><option>Italian</option><option>French</option><option>Japanese</option><option>Mexican</option><option>Indian</option><option>Chinese</option><option>Mediterranean</option><option>Korean</option><option>Thai</option><option>Fusion</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-300">Volume</label>
+            <select value={volume} onChange={e => setVolume(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-amber-500 text-gray-200">
+              <option>Small (under 50 covers/day)</option><option>Medium (50-150 covers/day)</option><option>Large (150-500 covers/day)</option><option>Very Large (500+ covers/day)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-300">Staffing Level</label>
+            <select value={staffingLevel} onChange={e => setStaffingLevel(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-amber-500 text-gray-200">
+              <option>Small (5-15 staff)</option><option>Medium (15-50 staff)</option><option>Large (50-100 staff)</option><option>Enterprise (100+ staff)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-300">Certification Level</label>
+            <select value={certificationLevel} onChange={e => setCertificationLevel(e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-amber-500 text-gray-200">
+              <option>Basic Food Safety</option><option>ServSafe Manager</option><option>HACCP Certification</option><option>ISO 22000</option><option>SQF (Safe Quality Food)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-300">Food Categories Handled</label>
+            <input value={foodCategories} onChange={e => setFoodCategories(e.target.value)} placeholder="e.g., Raw meats, seafood, dairy, produce" className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-amber-500 text-gray-200" />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1 text-gray-300">Prior Violations (if any)</label>
+            <textarea value={priorViolations} onChange={e => setPriorViolations(e.target.value)} placeholder="List any prior health code violations or areas of concern" rows={2} className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-amber-500 text-gray-200" />
           </div>
         </div>
       </div>
-
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          <div className="lg:col-span-2">
-            <div className="bg-gray-900/60 border border-orange-500/20 rounded-2xl p-6">
-              <h2 className="text-sm font-semibold text-orange-400 uppercase tracking-wider mb-4">Kitchen Details</h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1.5">Cuisine Type</label>
-                  <select name="cuisineType" value={form.cuisineType} onChange={handleChange} required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:border-orange-500 focus:outline-none transition">
-                    <option value="">Select cuisine...</option>
-                    <option value="Japanese / Sushi">Japanese / Sushi</option>
-                    <option value="Chinese">Chinese</option>
-                    <option value="Thai">Thai</option>
-                    <option value="Indian">Indian</option>
-                    <option value="Italian">Italian</option>
-                    <option value="French">French</option>
-                    <option value="Mexican">Mexican</option>
-                    <option value="American / Grill">American / Grill</option>
-                    <option value="Mediterranean">Mediterranean</option>
-                    <option value="Korean">Korean</option>
-                    <option value="Vietnamese">Vietnamese</option>
-                    <option value="Spanish / Tapas">Spanish / Tapas</option>
-                    <option value="Bakery / Pastry">Bakery / Pastry</option>
-                    <option value="Food Truck (Mixed)">Food Truck (Mixed)</option>
-                    <option value="Catering (Multi-Cuisine)">Catering (Multi-Cuisine)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1.5">Food Handling Risk Level</label>
-                  <select name="foodHandlingRisks" value={form.foodHandlingRisks} onChange={handleChange} required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:border-orange-500 focus:outline-none transition">
-                    <option value="">Select risk level...</option>
-                    <option value="Low Risk (pre-packaged, minimal prep)">Low Risk (pre-packaged, minimal prep)</option>
-                    <option value="Medium Risk (cooked from raw, some TCS)">Medium Risk (cooked from raw, some TCS)</option>
-                    <option value="High Risk (raw proteins, sushi, TCS foods)">High Risk (raw proteins, sushi, TCS foods)</option>
-                    <option value="Very High Risk (raw meats + fish + dairy)">Very High Risk (raw meats + fish + dairy)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1.5">Kitchen Setup</label>
-                  <select name="kitchenSetup" value={form.kitchenSetup} onChange={handleChange} required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:border-orange-500 focus:outline-none transition">
-                    <option value="">Select setup...</option>
-                    <option value="Commercial kitchen (full brigade)">Commercial kitchen (full brigade)</option>
-                    <option value="Commercial kitchen (small/limited)">Commercial kitchen (small/limited)</option>
-                    <option value="Ghost kitchen / delivery only">Ghost kitchen / delivery only</option>
-                    <option value="Food truck / mobile">Food truck / mobile</option>
-                    <option value="Restaurant (open kitchen)">Restaurant (open kitchen)</option>
-                    <option value="Catering prep kitchen">Catering prep kitchen</option>
-                    <option value="Bakery / pastry kitchen">Bakery / pastry kitchen</option>
-                    <option value="Home kitchen (cottage food)">Home kitchen (cottage food)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1.5">Storage Capacity</label>
-                  <select name="storageCapacity" value={form.storageCapacity} onChange={handleChange} required className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:border-orange-500 focus:outline-none transition">
-                    <option value="">Select storage...</option>
-                    <option value="Walk-in cooler + walk-in freezer">Walk-in cooler + walk-in freezer</option>
-                    <option value="Walk-in cooler only">Walk-in cooler only</option>
-                    <option value="Reach-in coolers (multiple)">Reach-in coolers (multiple)</option>
-                    <option value="Limited reach-in coolers">Limited reach-in coolers</option>
-                    <option value="Shared cold storage">Shared cold storage</option>
-                    <option value="No cold storage (daily pickup)">No cold storage (daily pickup)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1.5">Local Health Code Standard</label>
-                  <select name="localHealthCodes" value={form.localHealthCodes} onChange={handleChange} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:border-orange-500 focus:outline-none transition">
-                    <option value="FDA Food Code (Generic)">FDA Food Code (Generic)</option>
-                    <option value="California Retail Food Code">California Retail Food Code</option>
-                    <option value="New York City Health Code">New York City Health Code</option>
-                    <option value="Texas Food Establishment Rules">Texas Food Establishment Rules</option>
-                    <option value="Florida Food Safety Rules">Florida Food Safety Rules</option>
-                    <option value="Illinois Food Code">Illinois Food Code</option>
-                    <option value="Washington State Food Code">Washington State Food Code</option>
-                    <option value="Other / International">Other / International</option>
-                  </select>
-                </div>
-                <button type="submit" disabled={loading} className="w-full bg-orange-600 hover:bg-orange-500 disabled:bg-orange-800 text-white font-semibold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
-                  {loading ? (
-                    <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z" /></svg> Generating HACCP Plan...</>
-                  ) : (
-                    <>🛡️ Generate Food Safety Plan</>
-                  )}
-                </button>
-              </form>
-              {error && <p className="mt-3 text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-lg px-3 py-2">{error}</p>}
-            </div>
-          </div>
-
-          <div className="lg:col-span-3">
-            {!result && !loading && (
-              <div className="h-full flex flex-col items-center justify-center text-center p-12 border-2 border-dashed border-orange-500/20 rounded-2xl bg-gray-900/30">
-                <div className="text-5xl mb-4">🦠</div>
-                <h3 className="text-lg font-semibold text-gray-300 mb-2">HACCP Plan Will Appear Here</h3>
-                <p className="text-sm text-gray-500 max-w-xs">Enter your kitchen details to generate a complete food safety and HACCP compliance plan.</p>
-              </div>
-            )}
-            {loading && (
-              <div className="flex flex-col items-center justify-center h-64">
-                <div className="relative w-16 h-16 mb-4">
-                  <div className="absolute inset-0 border-4 border-orange-600/30 rounded-full"></div>
-                  <div className="absolute inset-0 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-                <p className="text-orange-400 text-sm font-medium">Building your HACCP plan...</p>
-                <p className="text-gray-500 text-xs mt-1">Identifying CCPs, temperature logs, compliance tips</p>
-              </div>
-            )}
-            {result && (
-              <div className="bg-gray-900/60 border border-orange-500/20 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-orange-400">🛡️ HACCP & Food Safety Plan</h3>
-                  <button onClick={() => navigator.clipboard.writeText(result)} className="text-xs text-gray-400 hover:text-white transition">📋 Copy</button>
-                </div>
-                <div className="prose prose-invert prose-sm max-w-none text-gray-300 overflow-auto max-h-[80vh]" dangerouslySetInnerHTML={{ __html: renderMarkdown(result) }} />
-              </div>
-            )}
-          </div>
-        </div>
+      <div className="flex justify-center mb-6">
+        <button onClick={handleGenerate} disabled={loading} className={btnClass}>
+          {loading ? "Generating..." : "Generate HACCP Plan"}
+        </button>
       </div>
-    </div>
+      {error && <div className="bg-red-900/30 border border-red-700 rounded-lg p-4 text-red-300 text-sm mb-6">{error}</div>}
+      {output && (
+        <div className="bg-gray-800/70 border border-gray-700 rounded-xl p-6">
+          <h2 className="text-lg font-semibold mb-4 text-gray-200">HACCP Food Safety Plan</h2>
+          <pre className="text-gray-300 text-sm whitespace-pre-wrap font-sans">{output}</pre>
+        </div>
+      )}
+    </main>
   );
 }
